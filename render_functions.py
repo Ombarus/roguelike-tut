@@ -1,12 +1,13 @@
 import tcod as libtcod
 from enum import Enum
 from game_states import GameStates
-from menus import inventory_menu
+from menus import inventory_menu, level_up_menu, character_screen
 
 class RenderOrder(Enum):
-	CORPSE = 1
-	ITEM = 2
-	ACTOR = 3
+	STAIRS = 1
+	CORPSE = 2
+	ITEM = 3
+	ACTOR = 4
 	
 def get_names_under_mouse(mouse, entities, fov_map):
 	(x, y) = (mouse.cx, mouse.cy)
@@ -51,7 +52,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 	entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
 	
 	for entity in entities_in_render_order:
-		if fov_map.fov[entity.y][entity.x]:
+		if fov_map.fov[entity.y][entity.x] or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
 			draw_entity(con, entity)
 	
 	libtcod.console_set_default_background(panel, libtcod.black)
@@ -59,6 +60,9 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 	
 	render_bar(panel, 1, 1, bar_width, "HP", player.fighter.hp, player.fighter.max_hp,
 		libtcod.light_red, libtcod.darker_red)
+		
+	libtcod.console_print_ex(panel, 1, 3, libtcod.BKGND_NONE, libtcod.LEFT,
+		"Dungeon level: {}".format(game_map.dungeon_level))
 		
 	libtcod.console_set_default_foreground(panel, libtcod.light_gray)
 	libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT, 
@@ -82,6 +86,13 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
 	if inventory_title != None:
 		inventory_menu(con, inventory_title,
 			player.inventory, 50, screen_width, screen_height)
+			
+	if game_state == GameStates.LEVEL_UP:
+		level_up_menu(con, "Level up! Choose a stat to raise:", player, 40,
+			screen_width, screen_height)
+			
+	if game_state == GameStates.CHARACTER_SCREEN:
+		character_screen(player, 30, 10, screen_width, screen_height)
 	
 def clear_all(con, entities):
 	for entity in entities:
