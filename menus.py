@@ -56,11 +56,18 @@ def menu(con, header, options, width, screen_width, screen_height):
 	y = int(screen_height / 2 - height / 2)
 	libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
 	
-def inventory_menu(con, header, inventory, inventory_width, screen_width, screen_height):
+def inventory_menu(con, header, player, inventory, inventory_width, screen_width, screen_height):
 	if len(inventory.items) == 0:
 		options = ["Inventory is empty."]
 	else:
-		options = [item.name for item in inventory.items]
+		options = []
+		for item in player.inventory.items:
+			if player.equipment.main_hand == item:
+				options.append("{} (on main hand)".format(item.name))
+			elif player.equipment.off_hand == item:
+				options.append("{} (on off hand)".format(item.name))
+			else:
+				options.append(item.name)
 		
 	menu(con, header, options, inventory_width, screen_width, screen_height)
 	
